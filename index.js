@@ -5,7 +5,8 @@ require("dotenv").config();
 
 const port = process.env.PORT || 8001;
 
-const {handleDatabaseConnection} = require("./src/config");
+const handleDatabaseConnection = require("./src/config");
+const authRoute = require("./src/routes/auth.routes");
 
 app.use(cors());
 app.use(express.json());
@@ -16,6 +17,7 @@ handleDatabaseConnection(process.env.MONGO_URI).then(() => {
  console.log('failed to connect to database', err);
 })
 
+app.use("/api/auth", authRoute);
 
 app.listen(port, () => {
  console.log(`meet started on port ${port}`);

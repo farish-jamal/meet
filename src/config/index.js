@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
-exports.handleDatabaseConnection = async(url) => {
+const handleDatabaseConnection = async(url) => {
  return mongoose.connect(url);
 }
+
+module.exports = handleDatabaseConnection;
