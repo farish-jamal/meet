@@ -66,3 +66,28 @@ exports.handleRegisterUser = asyncHandler(async(req, res) => {
 
  return res.status(201).json(new ApiResponse(201, { token, user: userWithoutPassword }, 'Account created sucessfully'));
 })
+
+exports.handleLoginUser = asyncHandler(async (req, res) => {
+ const {userName, password} = req.body;
+
+ const missingField = [];
+ if(!password) missingField.push('password');
+ if(!userName) missingField.push('username');
+
+ if(missingField.length > 0){
+  throw new ApiError(400, `Missing required fields: ${missingField.join(',')}`);
+ }
+
+ const user = await User.findOne({userName});
+
+ const verify = bcrypt.compareSync(password, user.password);
+ if(!verify) throw new ApiError(401, 'password not matched, try again later');
+
+ const token = jwt.sign({
+  id: user._id, role: 'user'
+ }, process.env.JWT_SECRET);
+
+ const {password: _, ...userWithoutPassword} = user.toObject();
+
+ return res.status(200).json(new ApiResponse(200, { token, user: userWithoutPassword }, 'Logged In sucessfully'));
+})
