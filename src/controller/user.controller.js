@@ -4,9 +4,11 @@ const { asyncHandler } = require('../common/asyncHandler');
 const ApiError = require('../utils/ApiError');
 const ApiResponse = require('../utils/ApiResponse');
 const Post = require('../models/post.model');
+const User = require('../models/user.model');
 
 exports.handlePostUpload = asyncHandler(async (req, res) => {
- const { caption } = req.body;
+ const { caption, visibility } = req.body;
+ const { id } = req.user;
 
  const missingField = [];
  if(!caption) missingField.push('caption');
@@ -26,6 +28,8 @@ exports.handlePostUpload = asyncHandler(async (req, res) => {
  const data = await Post.create({
   caption,
   image: imageUrl,
+  createdBy: id,
+  visibility
  })
 
  if(!data){
@@ -34,3 +38,22 @@ exports.handlePostUpload = asyncHandler(async (req, res) => {
 
  return res.status(201).json(new ApiResponse(201, data, 'Post uploaded'));
 });
+
+exports.handleGetProfile = asyncHandler(async (req, res) => {
+  const { id } = req.user;
+
+  const user = await User.findById({_id: id});
+
+  if(!user){
+    throw new ApiError(404, `User not found`);
+  }
+
+  const posts = await Post.find({createdBy: id});
+  if(posts.length === 0){
+    throw new ApiError(404, `No post found`)
+  }
+
+  const updatedPost = {user, posts};
+
+  return res.status(200).json(new ApiResponse(200, updatedPost, 'Profile fetched successfully'))
+})

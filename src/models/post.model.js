@@ -8,7 +8,17 @@ const postSchema = mongoose.Schema({
  image: {
   type: String,
   required: true,
- }
+ },
+ createdBy: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'User',
+  required: true,
+ },
+ visibility: {
+  type: String,
+  enum: ['friend', 'public'],
+  required: true,
+ },
 },
 {timestamps: true});
 
