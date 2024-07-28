@@ -113,7 +113,7 @@ exports.handleGetFeed = asyncHandler(async (req, res) =>{
 
   const friendList = user.friendList;
 
-  const posts = await Post.find({createdBy : {$in: [...friendList, id]}});
+  const posts = await Post.find({createdBy : {$in: [...friendList, id]}}).sort({ createdAt: -1 });
   if(posts.length === 0) throw new ApiError('404', 'No post found');
 
   return res.status(200).json(new ApiResponse(200, posts, 'All post fetched successfully'));
