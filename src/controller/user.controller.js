@@ -84,3 +84,23 @@ exports.handleGetSinglePost = asyncHandler(async (req, res) => {
 
   return res.status(200).json(new ApiResponse(200, post, 'Post fetched'));
 })
+
+exports.handleAddFriends = asyncHandler(async (req, res) => {
+  const { friendId } = req.body;
+  const { id } = req.user;
+
+  if(!friendId) throw new ApiError(400, 'Friend id missing');
+  if(friendId === id) throw new ApiError (400, 'User cannot add themselves');
+
+  const friend = await User.findById(friendId);
+  const user = await User.findById(id);
+
+  if(!user || !friend) throw new ApiError(404, 'User or friend doesnot exist');
+
+  if(user.friendList.includes(friendId)) throw new ApiError(400, 'Already a friend');
+
+  user.friendList.push(friendId);
+  await user.save();
+
+  return res.status(200).json(new ApiResponse(200, 'Friend added successfully'));
+})
