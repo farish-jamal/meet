@@ -104,3 +104,17 @@ exports.handleAddFriends = asyncHandler(async (req, res) => {
 
   return res.status(200).json(new ApiResponse(200, 'Friend added successfully'));
 })
+
+exports.handleGetFeed = asyncHandler(async (req, res) =>{
+  const { id } = req.user;
+
+  const user = await User.findById(id);
+  if(!user) throw new ApiError(404, 'User not found');
+
+  const friendList = user.friendList;
+
+  const posts = await Post.find({createdBy : {$in: [...friendList, id]}});
+  if(posts.length === 0) throw new ApiError('404', 'No post found');
+
+  return res.status(200).json(new ApiResponse(200, posts, 'All post fetched successfully'));
+})
