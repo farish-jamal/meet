@@ -116,5 +116,22 @@ exports.handleGetFeed = asyncHandler(async (req, res) =>{
   const posts = await Post.find({createdBy : {$in: [...friendList, id]}}).sort({ createdAt: -1 });
   if(posts.length === 0) throw new ApiError('404', 'No post found');
 
-  return res.status(200).json(new ApiResponse(200, posts, 'All post fetched successfully'));
+  const userId = posts.map((item) => item.createdBy);
+
+  const postUser = await User.find({_id: {$in : userId}}).select('-password');
+
+  console.log(postUser);
+
+  const postWithUser = posts.map(post => {
+    const user = postUser.map(u => {
+      if(u._id.toString() === post.createdBy.toString()){
+        return u;
+      }
+    })
+    return {
+      ...post.toObject(), user
+    }
+  })
+
+  return res.status(200).json(new ApiResponse(200, postWithUser, 'All post fetched successfully'));
 })
