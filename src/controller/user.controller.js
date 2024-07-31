@@ -70,19 +70,37 @@ exports.handleGetExplorePage = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'No post found');
   }
 
-  return res.status(200).json(new ApiResponse(200, posts, 'All public post fetched'));
+  const userId = posts.map(item => item.createdBy);
+  const postUser = await User.find({_id: {$in : userId}});
+
+  const postWithUser = posts.map(post => {
+    const user = postUser.map(u => {
+      if(u._id.toString() === post.createdBy.toString()){
+        return u;
+      }
+    })
+    return {
+      ...post.toObject(), user
+    }
+  })
+
+  return res.status(200).json(new ApiResponse(200, postWithUser, 'All public post fetched'));
 })
 
 exports.handleGetSinglePost = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const post = await Post.findById({_id: id});
+  const userId = post.createdBy;
+  const user = await User.findById({_id: userId});
+
+  const postWithUser = {...post.toObject(), user};
 
   if(!post){
     throw new ApiError(404, 'No post found');
   }
 
-  return res.status(200).json(new ApiResponse(200, post, 'Post fetched'));
+  return res.status(200).json(new ApiResponse(200, postWithUser, 'Post fetched'));
 })
 
 exports.handleAddFriends = asyncHandler(async (req, res) => {
