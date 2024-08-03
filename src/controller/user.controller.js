@@ -138,8 +138,6 @@ exports.handleGetFeed = asyncHandler(async (req, res) =>{
 
   const postUser = await User.find({_id: {$in : userId}}).select('-password');
 
-  console.log(postUser);
-
   const postWithUser = posts.map(post => {
     const user = postUser.map(u => {
       if(u._id.toString() === post.createdBy.toString()){
@@ -152,4 +150,16 @@ exports.handleGetFeed = asyncHandler(async (req, res) =>{
   })
 
   return res.status(200).json(new ApiResponse(200, postWithUser, 'All post fetched successfully'));
+})
+
+exports.handleGetPeople = asyncHandler(async (req, res) => {
+  const { id } = req.user;
+
+  const user = await User.findById(id);
+  if(!user) throw new ApiError('404', 'No user found');
+
+  const friends = user.friendList;
+
+  const people = await User.find({ _id: { $nin: [...friends, id] } });
+  return res.status(200).json(new ApiResponse(200, people, 'All post fetched successfully'));
 })

@@ -7,7 +7,8 @@ const {
   handleGetExplorePage,
   handleGetSinglePost,
   handleAddFriends,
-  handleGetFeed
+  handleGetFeed,
+  handleGetPeople
 } = require("../controller/user.controller");
 const { user } = require("../middlewares/protectedRoutes");
 const router = express.Router();
@@ -20,6 +21,7 @@ router.route("/explore").get(user, handleGetExplorePage);
 router.route("/post/:id").get(user, handleGetSinglePost);
 router.route("/addFriends").post(user, handleAddFriends);
 router.route("/feed").get(user, handleGetFeed);
+router.route("/people").get(user, handleGetPeople);
 
 
 router.use((err, req, res, next) => {
