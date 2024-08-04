@@ -52,9 +52,6 @@ exports.handleGetProfile = asyncHandler(async (req, res) => {
   }
 
   const posts = await Post.find({ createdBy: id }).select('-password');
-  if (posts.length === 0) {
-    throw new ApiError(404, `No post found`);
-  }
 
   const updatedPost = { user, posts };
 
