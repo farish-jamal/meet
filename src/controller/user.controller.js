@@ -43,7 +43,7 @@ exports.handlePostUpload = asyncHandler(async (req, res) => {
 });
 
 exports.handleGetProfile = asyncHandler(async (req, res) => {
-  const { id } = req.user;
+  const { id } = req.params;
 
   const user = await User.findById({ _id: id });
 
@@ -51,7 +51,7 @@ exports.handleGetProfile = asyncHandler(async (req, res) => {
     throw new ApiError(404, `User not found`);
   }
 
-  const posts = await Post.find({ createdBy: id });
+  const posts = await Post.find({ createdBy: id }).select('-password');
   if (posts.length === 0) {
     throw new ApiError(404, `No post found`);
   }
@@ -134,20 +134,17 @@ exports.handleGetFeed = asyncHandler(async (req, res) =>{
   const posts = await Post.find({createdBy : {$in: [...friendList, id]}}).sort({ createdAt: -1 });
   if(posts.length === 0) throw new ApiError('404', 'No post found');
 
-  const userId = posts.map((item) => item.createdBy);
+  const userId = posts.map((item) => item.createdBy.toString());
 
   const postUser = await User.find({_id: {$in : userId}}).select('-password');
 
   const postWithUser = posts.map(post => {
-    const user = postUser.map(u => {
-      if(u._id.toString() === post.createdBy.toString()){
-        return u;
-      }
-    })
+    const user = postUser.find(u => u._id.toString() === post.createdBy.toString());
     return {
-      ...post.toObject(), user
-    }
-  })
+      ...post.toObject(),
+      user: user
+    };
+  });
 
   return res.status(200).json(new ApiResponse(200, postWithUser, 'All post fetched successfully'));
 })
