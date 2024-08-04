@@ -16,7 +16,7 @@ const router = express.Router();
 const upload = multer({ storage: storage });
 
 router.route("/upload").post(user, upload.single("image"), handlePostUpload);
-router.route("/profile").get(user, handleGetProfile);
+router.route("/profile/:id").get(user, handleGetProfile);
 router.route("/explore").get(user, handleGetExplorePage);
 router.route("/post/:id").get(user, handleGetSinglePost);
 router.route("/addFriends").post(user, handleAddFriends);
