@@ -61,10 +61,7 @@ exports.handleGetProfile = asyncHandler(async (req, res) => {
 });
 
 exports.handleGetExplorePage = asyncHandler(async (req, res) => {
-  const posts = await Post.aggregate([
-    { $match: { visibility: "public" } },
-    { $sample: { size: await Post.countDocuments({ visibility: "public" }) } }
-  ]);
+  const posts = await Post.find({ visibility: "public" });
 
   if (posts.length === 0) {
     return res
