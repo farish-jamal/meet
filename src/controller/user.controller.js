@@ -200,17 +200,17 @@ exports.handleGerAllFriends = asyncHandler(async (req, res) => {
 
 exports.handleUnfollowUser = asyncHandler(async (req, res) => {
   const { id } = req.user;
-  const {friendId} = req.body;
+  const { friendId } = req.params;
 
   const user = await User.findById(id);
 
-  const userFriendExists = user.friends.some(friend => friend.toString() === friendId);
+  const userFriendExists = user.friendList.some(friend => friend.toString() === friendId);
 
-  if(!userFriend) throw new ApiError(404, 'No friend found');
+  if(!userFriendExists) throw new ApiError(404, 'No friend found');
 
   const userUpdate = await User.findByIdAndUpdate(
     id,
-    { $pull: { friends: friendId } },
+    { $pull: { friendList: friendId } },
     { new: true }
   );
 
