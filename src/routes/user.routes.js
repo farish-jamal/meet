@@ -9,7 +9,8 @@ const {
   handleAddFriends,
   handleGetFeed,
   handleGetPeople,
-  handleGerAllFriends
+  handleGerAllFriends,
+  handleUnfollowUser
 } = require("../controller/user.controller");
 const { user } = require("../middlewares/protectedRoutes");
 const router = express.Router();
@@ -24,6 +25,7 @@ router.route("/addFriends").post(user, handleAddFriends);
 router.route("/feed").get(user, handleGetFeed);
 router.route("/people").get(user, handleGetPeople);
 router.route("/friend/:id").get(user, handleGerAllFriends);
+router.route("/unfollow").post(user, handleUnfollowUser)
 
 
 router.use((err, req, res, next) => {

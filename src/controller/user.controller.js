@@ -61,7 +61,10 @@ exports.handleGetProfile = asyncHandler(async (req, res) => {
 });
 
 exports.handleGetExplorePage = asyncHandler(async (req, res) => {
-  const posts = await Post.find({ visibility: "public" });
+  const posts = await Post.aggregate([
+    { $match: { visibility: "public" } },
+    { $sample: { size: await Post.countDocuments({ visibility: "public" }) } }
+  ]);
 
   if (posts.length === 0) {
     return res
@@ -197,3 +200,24 @@ exports.handleGerAllFriends = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse("200", userFriends, "Friends Fetched Sucessfully!"));
 });
+
+exports.handleUnfollowUser = asyncHandler(async (req, res) => {
+  const { id } = req.user;
+  const {friendId} = req.body;
+
+  const user = await User.findById(id);
+
+  const userFriendExists = user.friends.some(friend => friend.toString() === friendId);
+
+  if(!userFriend) throw new ApiError(404, 'No friend found');
+
+  const userUpdate = await User.findByIdAndUpdate(
+    id,
+    { $pull: { friends: friendId } },
+    { new: true }
+  );
+
+  if(!userUpdate) throw new ApiError('500', 'Error while removing friend');
+
+  return res.status(201).json(new ApiResponse(201, userUpdate, 'Unfollowed'));
+})
