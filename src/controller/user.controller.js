@@ -180,3 +180,20 @@ exports.handleGetPeople = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, people, "All post fetched successfully"));
 });
+
+exports.handleGerAllFriends = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const user = await User.findById(id);
+  if (!user) throw new ApiError(404, "User not found");
+
+  const friends = user.friendList;
+  const userFriends = await User.find({ _id: { $in: friends } });
+  if (userFriends.length < 0)
+    return res
+      .status(200)
+      .json(new ApiResponse("200", [], "Friends Fetched Sucessfully!"));
+  return res
+    .status(200)
+    .json(new ApiResponse("200", userFriends, "Friends Fetched Sucessfully!"));
+});
