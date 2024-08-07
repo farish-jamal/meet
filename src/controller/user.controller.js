@@ -6,6 +6,7 @@ const ApiResponse = require("../utils/ApiResponse");
 const Post = require("../models/post.model");
 const User = require("../models/user.model");
 const createNotification = require("../common/Notification");
+const Comment = require("../models/comment.model");
 
 exports.handlePostUpload = asyncHandler(async (req, res) => {
   const { caption, visibility } = req.body;
@@ -237,4 +238,29 @@ exports.handleLikePost = asyncHandler(async (req, res) => {
 
   createNotification('like', id, postId);
   return res.status(201).json(new ApiResponse(201, [], 'Liked post'));
+})
+
+exports.handlePostComment = asyncHandler (async(req, res) => {
+  const { id } = req.user;
+  const { postId } = req.params;
+  const { comment } = req.body;
+
+  const user = await User.findById(id);
+  if(!user) throw new ApiError(404, 'No user found');
+
+  const post = await Post.findById(postId);
+  if(!post) throw new ApiError(404, 'No post found');
+
+  const comments = await Comment.create({
+    user: id,
+    post: postId,
+    comment
+  })
+
+  if(!comments) throw new ApiError(500, 'Error while creating comment');
+
+  post.comments.push(comments._id);
+  await post.save();
+  createNotification('comment', id, postId);
+  return res.status(201).json(new ApiResponse(201, [], 'Commented on post'));
 })

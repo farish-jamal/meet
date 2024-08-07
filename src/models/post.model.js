@@ -20,20 +20,22 @@ const postSchema = mongoose.Schema(
       enum: ["friend", "public"],
       required: true,
     },
-    likes: {
-      type: [{
+    likes: [
+      {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-      }]
-    },
+      },
+    ],
     likeCount: {
       type: Number,
-      default: 0
+      default: 0,
     },
-    comments: {
-      type: Number,
-      default: 0
-    }
+    comments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment",
+      },
+    ],
   },
   { timestamps: true }
 );
