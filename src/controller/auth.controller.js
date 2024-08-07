@@ -11,6 +11,7 @@ require("dotenv").config();
 
 exports.handleRegisterUser = asyncHandler(async (req, res) => {
   const { email, password, name, dob, userName } = req.body;
+  console.log(email, password, name, dob, userName);
 
   const missingField = [];
   if (!email) missingField.push("email");

@@ -5,6 +5,7 @@ const ApiError = require("../utils/ApiError");
 const ApiResponse = require("../utils/ApiResponse");
 const Post = require("../models/post.model");
 const User = require("../models/user.model");
+const createNotification = require("../common/Notification");
 
 exports.handlePostUpload = asyncHandler(async (req, res) => {
   const { caption, visibility } = req.body;
@@ -217,4 +218,23 @@ exports.handleUnfollowUser = asyncHandler(async (req, res) => {
   if(!userUpdate) throw new ApiError('500', 'Error while removing friend');
 
   return res.status(201).json(new ApiResponse(201, userUpdate, 'Unfollowed'));
+})
+
+exports.handleLikePost = asyncHandler(async (req, res) => {
+  const { id } = req.user;
+  const { postId } = req.params;
+
+  const post = await Post.findById(postId);
+  if (!post) throw new ApiError(404, 'Post not found');
+
+  if (post.likes.includes(id)) {
+    return res.status(400).json(new ApiResponse(400, 'User has already liked this post'));
+  }
+  post.likes.push(id);
+  post.likeCount = post.likeCount + 1;
+
+  await post.save();
+
+  createNotification('like', id, postId);
+  return res.status(201).json(new ApiResponse(201, [], 'Liked post'));
 })
