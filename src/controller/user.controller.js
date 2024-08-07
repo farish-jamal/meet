@@ -7,6 +7,7 @@ const Post = require("../models/post.model");
 const User = require("../models/user.model");
 const createNotification = require("../common/Notification");
 const Comment = require("../models/comment.model");
+const Notification = require("../models/notification.model");
 
 exports.handlePostUpload = asyncHandler(async (req, res) => {
   const { caption, visibility } = req.body;
@@ -206,9 +207,11 @@ exports.handleUnfollowUser = asyncHandler(async (req, res) => {
 
   const user = await User.findById(id);
 
-  const userFriendExists = user.friendList.some(friend => friend.toString() === friendId);
+  const userFriendExists = user.friendList.some(
+    (friend) => friend.toString() === friendId
+  );
 
-  if(!userFriendExists) throw new ApiError(404, 'No friend found');
+  if (!userFriendExists) throw new ApiError(404, "No friend found");
 
   const userUpdate = await User.findByIdAndUpdate(
     id,
@@ -216,51 +219,65 @@ exports.handleUnfollowUser = asyncHandler(async (req, res) => {
     { new: true }
   );
 
-  if(!userUpdate) throw new ApiError('500', 'Error while removing friend');
+  if (!userUpdate) throw new ApiError("500", "Error while removing friend");
 
-  return res.status(201).json(new ApiResponse(201, userUpdate, 'Unfollowed'));
-})
+  return res.status(201).json(new ApiResponse(201, userUpdate, "Unfollowed"));
+});
 
 exports.handleLikePost = asyncHandler(async (req, res) => {
   const { id } = req.user;
   const { postId } = req.params;
 
   const post = await Post.findById(postId);
-  if (!post) throw new ApiError(404, 'Post not found');
+  if (!post) throw new ApiError(404, "Post not found");
 
   if (post.likes.includes(id)) {
-    return res.status(400).json(new ApiResponse(400, 'User has already liked this post'));
+    return res
+      .status(400)
+      .json(new ApiResponse(400, "User has already liked this post"));
   }
   post.likes.push(id);
   post.likeCount = post.likeCount + 1;
 
   await post.save();
 
-  createNotification('like', id, postId);
-  return res.status(201).json(new ApiResponse(201, [], 'Liked post'));
-})
+  createNotification("like", id, postId);
+  return res.status(201).json(new ApiResponse(201, [], "Liked post"));
+});
 
-exports.handlePostComment = asyncHandler (async(req, res) => {
+exports.handlePostComment = asyncHandler(async (req, res) => {
   const { id } = req.user;
   const { postId } = req.params;
   const { comment } = req.body;
 
   const user = await User.findById(id);
-  if(!user) throw new ApiError(404, 'No user found');
+  if (!user) throw new ApiError(404, "No user found");
 
   const post = await Post.findById(postId);
-  if(!post) throw new ApiError(404, 'No post found');
+  if (!post) throw new ApiError(404, "No post found");
 
   const comments = await Comment.create({
     user: id,
     post: postId,
-    comment
-  })
+    comment,
+  });
 
-  if(!comments) throw new ApiError(500, 'Error while creating comment');
+  if (!comments) throw new ApiError(500, "Error while creating comment");
 
   post.comments.push(comments._id);
   await post.save();
-  createNotification('comment', id, postId);
-  return res.status(201).json(new ApiResponse(201, [], 'Commented on post'));
-})
+  createNotification("comment", id, postId);
+  return res.status(201).json(new ApiResponse(201, [], "Commented on post"));
+});
+
+exports.handleGetNotification = asyncHandler(async (req, res) => {
+  const { id } = req.user;
+
+  const notification = await Notification.find({ toUser: id });
+  if (notification.length === 0)
+    return res.status(200).json(new ApiResponse(200, [], "No Notification"));
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, notification, "No Notification"));
+});
