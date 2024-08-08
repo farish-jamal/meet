@@ -270,6 +270,8 @@ exports.handlePostComment = asyncHandler(async (req, res) => {
   const post = await Post.findById(postId);
   if (!post) throw new ApiError(404, "No post found");
 
+  const userId = post.createdBy;
+
   const comments = await Comment.create({
     user: id,
     post: postId,
@@ -280,7 +282,7 @@ exports.handlePostComment = asyncHandler(async (req, res) => {
 
   post.comments.push(comments._id);
   await post.save();
-  createNotification("comment", id, postId);
+  createNotification("comment", userId, postId);
   return res.status(201).json(new ApiResponse(201, [], "Commented on post"));
 });
 
