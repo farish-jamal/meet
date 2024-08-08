@@ -254,7 +254,9 @@ exports.handleLikePost = asyncHandler(async (req, res) => {
 
   await post.save();
 
-  createNotification("like", id, postId);
+  const userId = post.createdBy;
+
+  createNotification("like", userId, postId);
   return res.status(201).json(new ApiResponse(201, [], "Liked post"));
 });
 
