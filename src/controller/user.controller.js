@@ -288,7 +288,7 @@ exports.handlePostComment = asyncHandler(async (req, res) => {
 exports.handleGetNotification = asyncHandler(async (req, res) => {
   const { id } = req.user;
 
-  const notification = await Notification.find({ toUser: id });
+  const notification = await Notification.find({ toUser: id }).sort({ createdAt: -1 });;
   if (notification.length === 0)
     return res.status(200).json(new ApiResponse(200, [], "No Notification"));
 
