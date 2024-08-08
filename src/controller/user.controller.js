@@ -73,7 +73,7 @@ exports.handleGetExplorePage = asyncHandler(async (req, res) => {
   }
 
   const userId = posts.map((item) => item.createdBy);
-  const postUser = await User.find({ _id: { $in: userId } });
+  const postUser = await User.find({ _id: { $in: userId } }).select('-password');
 
   const postWithUser = posts.map((post) => {
     const user = postUser.map((u) => {
@@ -97,12 +97,11 @@ exports.handleGetSinglePost = asyncHandler(async (req, res) => {
 
   const post = await Post.findById({ _id: id });
   const userId = post.createdBy;
-  const user = await User.findById({ _id: userId });
+  const user = await User.findById({ _id: userId }).select('-password');
 
-  const comment = await Comment.find({post: id});
+  const comment = await Comment.find({post: id}).sort({ createdAt: -1 });
   const commentUserId = comment.map((item) => item.user);
-  const commentUser = await User.find({_id: {$in: commentUserId}});
-  console.log(commentUser, commentUserId, comment)
+  const commentUser = await User.find({_id: {$in: commentUserId}}).select('-password');
 
   const commentWithUser = comment.map((item) => {
     const user = commentUser.find((u) => u._id.toString() === item.user.toString());
@@ -191,7 +190,7 @@ exports.handleGetPeople = asyncHandler(async (req, res) => {
 
   const friends = user.friendList;
 
-  const people = await User.find({ _id: { $nin: [...friends, id] } });
+  const people = await User.find({ _id: { $nin: [...friends, id] } }).select('-password');
   return res
     .status(200)
     .json(new ApiResponse(200, people, "All post fetched successfully"));
@@ -204,7 +203,7 @@ exports.handleGerAllFriends = asyncHandler(async (req, res) => {
   if (!user) throw new ApiError(404, "User not found");
 
   const friends = user.friendList;
-  const userFriends = await User.find({ _id: { $in: friends } });
+  const userFriends = await User.find({ _id: { $in: friends } }).select('-password');
   if (userFriends.length < 0)
     return res
       .status(200)
@@ -288,7 +287,7 @@ exports.handlePostComment = asyncHandler(async (req, res) => {
 exports.handleGetNotification = asyncHandler(async (req, res) => {
   const { id } = req.user;
 
-  const notification = await Notification.find({ toUser: id }).sort({ createdAt: -1 });;
+  const notification = await Notification.find({ toUser: id }).sort({ createdAt: -1 });
   if (notification.length === 0)
     return res.status(200).json(new ApiResponse(200, [], "No Notification"));
 
