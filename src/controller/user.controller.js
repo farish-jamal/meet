@@ -99,7 +99,20 @@ exports.handleGetSinglePost = asyncHandler(async (req, res) => {
   const userId = post.createdBy;
   const user = await User.findById({ _id: userId });
 
-  const postWithUser = { ...post.toObject(), user };
+  const comment = await Comment.find({post: id});
+  const commentUserId = comment.map((item) => item.user);
+  const commentUser = await User.find({_id: {$in: commentUserId}});
+  console.log(commentUser, commentUserId, comment)
+
+  const commentWithUser = comment.map((item) => {
+    const user = commentUser.find((u) => u._id.toString() === item.user.toString());
+    return {
+      ...item.toObject(),
+      user
+    };
+  })
+
+  const postWithUser = { ...post.toObject(), ...user.toObject(), commentWithUser};
 
   if (!post) {
     throw new ApiError(404, "No post found");
